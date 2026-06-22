@@ -3,7 +3,7 @@ import { SocialLinks } from "./SocialLinks"
 import { FaGithub } from "react-icons/fa"
 
 export const Header = ({ }) => {
-  return <div className="flex flex-col gap-1 py-3">
+  return <div className="flex flex-col gap-1 py-3 items-start">
     <div className="mb-2">
       <h1 className="text-xl font-bold">Eduardo Lima</h1>
       <h3 className="text-sm">Desenvolvedor Front-end</h3>
