@@ -1,7 +1,8 @@
 import { lazy, Suspense, useState } from 'react'
 import ProjectsSection from '@/sections/ProjectsSection'
-import { Header } from './components'
-import Button from './components/ui/Button'
+import ContactSection from '@/sections/ContactSection'
+import { Button } from './components/ui/Button'
+import { Hero } from './sections/HeroSection'
 
 const AdminSection = import.meta.env.DEV
   ? lazy(() => import('@/sections/AdminSection'))
@@ -13,7 +14,7 @@ export function App() {
   if (AdminSection && showAdmin) {
     return (
       <main>
-        <button onClick={() => setShowAdmin(false)}>← voltar ao site</button>
+        <Button variant="secondary" onClick={() => setShowAdmin(false)}>← voltar ao site</Button>
         <Suspense fallback={<p>Carregando admin…</p>}>
           <AdminSection />
         </Suspense>
@@ -23,10 +24,11 @@ export function App() {
 
   return (
     <main className="flex flex-col w-full gap-10  items-center">
-      <Header />
+      <Hero />
       <ProjectsSection />
+      <ContactSection />
       {AdminSection && (
-        <Button onClick={() => setShowAdmin(true)}>
+        <Button className="fixed bottom-4 right-4" onClick={() => setShowAdmin(true)}>
           Abrir admin (dev only)
         </Button>
       )}

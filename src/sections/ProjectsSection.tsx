@@ -1,16 +1,25 @@
-import { useEffect, useState } from 'react'
-import { initPublicDatabase, listProjects } from '@/services/projects.service'
-import type { Project } from '@/types/project.types'
+import { useEffect, useMemo, useState } from 'react'
+import { FaGithub } from 'react-icons/fa'
+
 import { ProjectCard } from '@/components/ProjectCard'
+import {
+  initPublicDatabase,
+  listProjects,
+} from '@/services/projects.service'
+
+import type { Project } from '@/types/project.types'
+import { ProjectModal } from '@/components/project/ProjectModal'
 
 function CardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-panel">
-      <div className="aspect-video w-full animate-pulse bg-bg" />
+    <div className="overflow-hidden rounded-2xl border border-line bg-panel">
+      <div className="aspect-video animate-pulse bg-bg" />
+
       <div className="space-y-3 p-5">
-        <div className="h-4 w-2/3 animate-pulse rounded bg-bg" />
-        <div className="h-3 w-1/2 animate-pulse rounded bg-bg" />
-        <div className="h-3 w-full animate-pulse rounded bg-bg" />
+        <div className="h-5 w-2/3 animate-pulse rounded bg-bg" />
+        <div className="h-4 w-1/2 animate-pulse rounded bg-bg" />
+        <div className="h-4 w-full animate-pulse rounded bg-bg" />
+        <div className="h-4 w-4/5 animate-pulse rounded bg-bg" />
       </div>
     </div>
   )
@@ -22,48 +31,170 @@ export default function ProjectsSection() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    initPublicDatabase()
-      .then(() => setProjects(listProjects()))
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false))
+    async function loadProjects() {
+      try {
+        await initPublicDatabase()
+
+        const data = listProjects()
+
+        setProjects(data)
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar projetos.'
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProjects()
   }, [])
 
+  const featuredProjects = useMemo(
+    () => projects.filter((project) => project.featured),
+    [projects]
+  )
+
+  const otherProjects = useMemo(
+    () => projects.filter((project) => !project.featured),
+    [projects]
+  )
+
+  const [selectedProject, setSelectedProject] =
+    useState<Project | null>(null)
+
   return (
-    <section className="mx-auto max-w-5xl px-4 py-16">
-      <header className="mb-10 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent">
-          Portfolio
+    <section
+      id="projects"
+      className="mx-auto max-w-7xl px-4 py-24"
+    >
+      <header className="mx-auto mb-20 max-w-3xl text-center">
+        <span className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
+          Portfólio
+        </span>
+
+        <h2 className="mt-4 text-4xl font-bold text-ink sm:text-5xl">
+          Projetos
+        </h2>
+
+        <p className="mt-6 text-lg leading-relaxed text-muted">
+          Projetos desenvolvidos para explorar arquitetura de software,
+          experiência do usuário, performance e resolução de problemas
+          através de aplicações modernas.
         </p>
-        <h2 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Projetos</h2>
       </header>
 
-      {error && (
-        <p className="rounded-lg border border-danger/30 bg-danger/5 p-4 text-center text-sm text-danger">
+      {loading && (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <CardSkeleton key={index} />
+          ))}
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="rounded-xl border border-danger/30 bg-danger/5 p-6 text-center text-danger">
           Erro ao carregar projetos: {error}
-        </p>
-      )}
-
-      {!error && loading && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
         </div>
       )}
 
-      {!error && !loading && projects.length === 0 && (
-        <p className="rounded-lg border border-dashed border-line p-10 text-center text-sm text-muted">
-          Nenhum projeto publicado ainda.
-        </p>
-      )}
-
-      {!error && !loading && projects.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p) => (
-            <ProjectCard key={p.id} project={p} />
-          ))}
+      {!loading && !error && projects.length === 0 && (
+        <div className="rounded-xl border border-dashed border-line p-12 text-center">
+          <p className="text-muted">
+            Nenhum projeto publicado ainda.
+          </p>
         </div>
       )}
+
+      {!loading && !error && projects.length > 0 && (
+        <>
+          {featuredProjects.length > 0 && (
+            <div className="mb-20">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-ink">
+                  Projetos em Destaque
+                </h3>
+
+                <p className="mt-2 text-muted">
+                  Aplicações que representam minha forma de pensar
+                  arquitetura, organização de código e construção
+                  de produtos.
+                </p>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                {featuredProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {otherProjects.length > 0 && (
+            <div>
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-ink">
+                  Explorações e Estudos
+                </h3>
+
+                <p className="mt-2 text-muted">
+                  Projetos utilizados para aprofundar conhecimentos,
+                  validar ideias e experimentar novas abordagens.
+                </p>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {otherProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onViewDetails={setSelectedProject}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-20 text-center">
+            <p className="mb-4 text-muted">
+              Mais projetos, estudos e experimentos disponíveis no GitHub.
+            </p>
+
+            <a
+              href="https://github.com/seuusuario"
+              target="_blank"
+              rel="noreferrer"
+              className="
+                inline-flex
+                items-center
+                gap-3
+                rounded-xl
+                border
+                border-line
+                px-6
+                py-3
+                font-medium
+                text-ink
+                transition
+                hover:bg-panel
+              "
+            >
+              <FaGithub />
+              Acessar GitHub
+            </a>
+          </div>
+        </>
+      )}
+      <ProjectModal
+        project={selectedProject}
+        open={!!selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
     </section>
   )
 }

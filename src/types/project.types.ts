@@ -1,11 +1,32 @@
-export interface Project {
+export type Project = {
   id: string
-  status: string
+
+  status:
+  | 'em-andamento'
+  | 'concluido'
+  | 'pausado'
+
   title: string
+
   subtitle: string
+
   description: string
-  github?: string
-  demo?: string
-  technologies?: string[]
+
+  story?: string
+
+  problem?: string
+
+  solution?: string
+
+  result?: string
+
   image: string[]
+
+  technologies: string[]
+
+  github?: string
+
+  demo?: string
+
+  featured: boolean
 }

@@ -1,46 +1,180 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef } from 'react'
+import { Slot } from '@radix-ui/react-slot'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
-type Size = 'sm' | 'md'
+import type {
+  ButtonHTMLAttributes,
+  ReactNode,
+} from 'react'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'ghost'
+  | 'danger'
+
+type Size =
+  | 'sm'
+  | 'md'
+  | 'lg'
+
+interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode
   variant?: Variant
   size?: Size
-  children: ReactNode
+  loading?: boolean
+  leftIcon?: ReactNode
+  rightIcon?: ReactNode
+  asChild?: boolean
 }
 
-const base =
-  'inline-flex items-center justify-center rounded-md font-medium cursor-pointer ' +
-  'transition disabled:cursor-not-allowed disabled:opacity-50 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2'
-
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-white border border-accent hover:brightness-110',
-  secondary: 'bg-panel text-ink border border-line hover:border-accent',
-  danger:
-    'bg-transparent text-danger border border-danger hover:bg-danger hover:text-white',
-  ghost: 'bg-transparent text-muted underline hover:text-ink border-none px-0',
+  primary: `
+    bg-accent
+    text-white
+    hover:opacity-90
+  `,
+
+  secondary: `
+    border
+    border-line
+    bg-panel
+    text-ink
+    hover:bg-bg
+  `,
+
+  outline: `
+    border
+    border-line
+    bg-transparent
+    text-ink
+    hover:bg-panel
+  `,
+
+  ghost: `
+    bg-transparent
+    text-ink
+    hover:bg-panel
+  `,
+
+  danger: `
+    bg-danger
+    text-white
+    hover:opacity-90
+  `,
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
+  sm: `
+    h-9
+    px-3
+    text-sm
+  `,
+
+  md: `
+    h-11
+    px-5
+    text-sm
+  `,
+
+  lg: `
+    h-12
+    px-6
+    text-base
+  `,
 }
 
-export default function Button({
-  variant = 'secondary',
-  size = 'md',
-  className = '',
-  children,
-  ...rest
-}: ButtonProps) {
-  const classes = [base, variants[variant], sizes[size], className]
-    .filter(Boolean)
-    .join(' ')
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>(
+  (
+    {
+      children,
+      variant = 'primary',
+      size = 'md',
+      loading = false,
+      leftIcon,
+      rightIcon,
+      className = '',
+      disabled,
+      asChild = false,
+      ...props
+    },
+    ref
+  ) => {
+    const Component = asChild
+      ? Slot
+      : 'button'
 
-  return (
-    <button className={classes} {...rest}>
-      {children}
-    </button>
-  )
-}
+    const classes = `
+      inline-flex
+      items-center
+      justify-center
+      gap-2
+
+      rounded-xl
+
+      font-medium
+
+      transition-all
+      duration-200
+
+      disabled:cursor-not-allowed
+      disabled:opacity-50
+
+      cursor-pointer
+
+      ${variants[variant]}
+      ${sizes[size]}
+      ${className}
+    `
+
+    if (asChild) {
+      return (
+        <Slot
+          className={classes}
+          {...props}
+        >
+          {children}
+        </Slot>
+      )
+    }
+
+    return (
+      <button
+        ref={ref}
+        disabled={disabled || loading}
+        className={classes}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <span
+              className="
+                h-4
+                w-4
+                animate-spin
+                rounded-full
+                border-2
+                border-current
+                border-t-transparent
+              "
+            />
+
+            Carregando...
+          </>
+        ) : (
+          <>
+            {leftIcon}
+            {children}
+            {rightIcon}
+          </>
+        )}
+      </button>
+    )
+  }
+)
+
+Button.displayName = 'Button'
